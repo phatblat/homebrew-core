@@ -2,22 +2,24 @@ class Mas < Formula
   desc "Mac App Store command-line interface"
   homepage "https://github.com/mas-cli/mas"
   url "https://github.com/mas-cli/mas.git",
-      :tag      => "v1.4.4",
-      :revision => "6096d231196bafdfba3a8ac325455b057c5898a4"
+      :tag      => "v1.5.0",
+      :revision => "ccaaa74c9593d04dc41fcff40af196fdad49f517"
   head "https://github.com/mas-cli/mas.git"
 
   bottle do
     cellar :any
-    sha256 "24e1ba2d2675d1f939bbfc6ab979fbc923560ed1dbf419034e43224b38c6584b" => :mojave
-    sha256 "6c7cab37e3b21330a8fed37b571dcb31d020588739ef6e256039b54fcf7abdc0" => :high_sierra
+    sha256 "d3668e4d128dfc8e062adc30c543ded35e7726dd9e021696e32a97d484e465fd" => :mojave
+    sha256 "fc6658113d785a660e3f4d2e4e134ad02fe003ffa7d69271a2c53f503aaae726" => :high_sierra
   end
 
   depends_on "carthage" => :build
-  depends_on :xcode => ["10.0", :build]
+  depends_on :xcode => ["10.1", :build]
+  depends_on "trash"
 
   def install
-    # Prevent warnings from causing build failures
-    # Prevent linker errors by telling all lib builds to use max size install names
+    # Working around build issues in dependencies
+    # - Prevent warnings from causing build failures
+    # - Prevent linker errors by telling all lib builds to use max size install names
     xcconfig = buildpath/"Overrides.xcconfig"
     xcconfig.write <<~EOS
       GCC_TREAT_WARNINGS_AS_ERRORS = NO
@@ -26,14 +28,6 @@ class Mas < Formula
     ENV["XCODE_XCCONFIG_FILE"] = xcconfig
 
     system "carthage", "bootstrap", "--platform", "macOS"
-
-    xcodebuild "install",
-               "-project", "mas-cli.xcodeproj",
-               "-scheme", "mas-cli Release",
-               "-configuration", "Release",
-               "OBJROOT=build",
-               "SYMROOT=build"
-
     system "script/install", prefix
 
     bash_completion.install "contrib/completion/mas-completion.bash" => "mas"
