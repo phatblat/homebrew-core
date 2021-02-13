@@ -2,31 +2,33 @@ class Mas < Formula
   desc "Mac App Store command-line interface"
   homepage "https://github.com/mas-cli/mas"
   url "https://github.com/mas-cli/mas.git",
-      tag:      "v1.7.1",
-      revision: "b8dcb4ce4b1d78ada7556565dd5c73e9913758d8"
+      tag:      "v1.8.0",
+      revision: "9eaf57a5de836ce5e5435a8df14da4aa1b7d7444"
   license "MIT"
   head "https://github.com/mas-cli/mas.git"
 
   bottle do
-    sha256 cellar: :any, big_sur:  "432091a534d0a1f753fcf953fb1c20c10ef5762b7f8922cb378c3dcd36898d30"
-    sha256 cellar: :any, catalina: "e6de2f98ebd21885a9827664fe1b7eea5516a7fd75d5b7383e3a9b088591a27f"
-    sha256 cellar: :any, mojave:   "8b6dc4e261ebdc8e2f93afe87da3db4d482eb3d8a0358ab19a0485d434550e77"
+    sha256 cellar: :any, arm64_big_sur: "47fc7a22f7df891118ce45675f41e413df06e2527371a3cfa2f6790710b36973"
+    sha256 cellar: :any, big_sur:       "432091a534d0a1f753fcf953fb1c20c10ef5762b7f8922cb378c3dcd36898d30"
+    sha256 cellar: :any, catalina:      "e6de2f98ebd21885a9827664fe1b7eea5516a7fd75d5b7383e3a9b088591a27f"
+    sha256 cellar: :any, mojave:        "8b6dc4e261ebdc8e2f93afe87da3db4d482eb3d8a0358ab19a0485d434550e77"
   end
 
   depends_on "carthage" => :build
-  depends_on xcode: ["10.2", :build]
+  if Hardware::CPU.arm?
+    depends_on xcode: ["12.2", :build]
+  else
+    depends_on xcode: ["11.4", :build]
+  end
 
   def install
     # Working around build issues in dependencies
     # - Prevent warnings from causing build failures
     # - Prevent linker errors by telling all lib builds to use max size install names
-    # - Ensure dependencies build for the current CPU; otherwise Commandant will
-    #   build for x86_64 when running arm64
     xcconfig = buildpath/"Overrides.xcconfig"
     xcconfig.write <<~EOS
       GCC_TREAT_WARNINGS_AS_ERRORS = NO
       OTHER_LDFLAGS = -headerpad_max_install_names
-      VALID_ARCHS = #{Hardware::CPU.arch}
     EOS
     ENV["XCODE_XCCONFIG_FILE"] = xcconfig
 
